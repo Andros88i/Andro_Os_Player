@@ -1,5 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#000000</color>
-    <color name="matrix_green">#00FF41</color>
-    <color name="neon_blue">#00F3FF</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Colores Neón -->
+    <color name="neon_primary">#00FFAA</color>
+    <color name="neon_secondary">#0088FF</color>
+    <color name="neon_accent">#FF0088</color>
+    <color name="neon_cyan">#00FFFF</color>
+    <color name="neon_purple">#AA00FF</color>
+    
+    <!-- Fondos -->
+    <color name="background_dark">#0A0A0A</color>
+    <color name="surface_dark">#1A1A1A</color>
+    <color name="surface_medium">#2A2A2A</color>
+    <color name="surface_light">#333333</color>
+    
+    <!-- Textos -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#AAAAAA</color>
+    <color name="text_disabled">#666666</color>
+    
+    <!-- Estados -->
+    <color name="success">#00FF00</color>
+    <color name="warning">#FFFF00</color>
+    <color name="error">#FF0000</color>
 </resources>
