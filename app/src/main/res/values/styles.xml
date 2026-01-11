@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.AndroOsPlayer" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="android:navigationBarColor">@color/background_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:colorBackground">@color/background_dark</item>
+        <item name="android:colorPrimary">@color/neon_primary</item>
+        <item name="android:colorPrimaryDark">@color/background_dark</item>
+        <item name="android:colorAccent">@color/neon_secondary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <style name="Theme.AndroOsPlayer.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+</resources>
