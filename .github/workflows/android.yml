@@ -11,14 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    
+
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
       with:
@@ -26,10 +27,10 @@ jobs:
         packages: cmdline-tools;latest platform-tools platforms;android-34 build-tools;34.0.0
         accept-android-sdk-licenses: true
         log-accepted-android-sdk-licenses: true
-    
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    
+
     - name: Cache Gradle dependencies
       uses: actions/cache@v3
       with:
@@ -39,51 +40,36 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-    
-    - name: Build with Gradle
-      id: build
+
+    # 🔑 BUILD REAL (CLARO Y FORZADO)
+    - name: Build Debug & Release APK
       run: |
-        echo "=== Ejecutando clean ==="
+        echo "=== Limpieza ==="
         ./gradlew clean
-        
-        echo "=== Ejecutando assembleDebug ==="
+
+        echo "=== Compilando DEBUG APK ==="
         ./gradlew assembleDebug
-        
-        echo "=== Intentando assembleRelease (con firma) ==="
-        ./gradlew assembleRelease || echo "Release build con firma falló"
-        
-        echo "=== Intentando release sin firma ==="
-        ./gradlew assembleRelease -Pandroid.injected.signing.store.file= -Pandroid.injected.signing.store.password= -Pandroid.injected.signing.key.alias= -Pandroid.injected.signing.key.password=
-    
-    - name: Debug - List all files
+
+        echo "=== Compilando RELEASE APK SIN FIRMA ==="
+        ./gradlew assembleRelease \
+          -Pandroid.injected.signing.store.file= \
+          -Pandroid.injected.signing.store.password= \
+          -Pandroid.injected.signing.key.alias= \
+          -Pandroid.injected.signing.key.password=
+
+    # 🔍 DEBUG REAL (MUY ÚTIL, LO DEJAMOS)
+    - name: Debug - List APK outputs
       run: |
-        echo "=== Estructura completa del proyecto ==="
-        find . -name "*.apk" -type f 2>/dev/null | head -20 || echo "No se encontraron APKs"
-        
-        echo "=== Directorio app/build completo ==="
-        ls -la app/build/ 2>/dev/null || echo "No existe app/build/"
-        
-        echo "=== Directorio app/build/outputs completo ==="
-        ls -la app/build/outputs/ 2>/dev/null || echo "No existe app/build/outputs/"
-        
-        echo "=== Directorio app/build/outputs/apk completo ==="
-        ls -la app/build/outputs/apk/ 2>/dev/null || echo "No existe app/build/outputs/apk/"
-        
-        echo "=== Buscando APKs recursivamente ==="
-        find app/build -name "*.apk" -type f 2>/dev/null || echo "No se encontraron APKs"
-        
-        echo "=== Contenido de gradle.properties ==="
-        cat gradle.properties 2>/dev/null || echo "No hay gradle.properties"
-        
-        echo "=== Contenido de build.gradle ==="
-        cat app/build.gradle 2>/dev/null || echo "No hay app/build.gradle"
-        
-        echo "=== Estructura del proyecto ==="
-        ls -la
-        
-        echo "=== ¿Existe gradlew? ==="
-        ls -la gradlew 2>/dev/null || echo "No hay gradlew"
-    
+        echo "=== Buscando APKs ==="
+        find . -name "*.apk" -type f || echo "No se encontraron APKs"
+
+        echo "=== app/build/outputs ==="
+        ls -R app/build/outputs || echo "No existe app/build/outputs"
+
+        echo "=== app/build/outputs/apk ==="
+        ls -R app/build/outputs/apk || echo "No existe app/build/outputs/apk"
+
+    # ⬆️ SUBIDAS CORRECTAS
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
@@ -91,7 +77,7 @@ jobs:
         path: app/build/outputs/apk/**/debug/*.apk
         retention-days: 7
         if-no-files-found: warn
-    
+
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
@@ -99,7 +85,8 @@ jobs:
         path: app/build/outputs/apk/**/release/*.apk
         retention-days: 7
         if-no-files-found: warn
-    
+
+    # 🛟 RESPALDO (por si Gradle cambia rutas)
     - name: Upload All APKs (fallback)
       uses: actions/upload-artifact@v4
       with:
