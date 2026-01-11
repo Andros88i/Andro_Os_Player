@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Andro_Os Player</string>
+    <string name="permission_required">Se requiere permiso para acceder a los archivos de música</string>
+    <string name="loading_songs">Cargando canciones…</string>
+    <string name="no_songs">No se encontraron canciones</string>
+    <string name="play">Reproducir</string>
+    <string name="pause">Pausar</string>
+    <string name="next">Siguiente</string>
+    <string name="previous">Anterior</string>
+    <string name="master_gain">Ganancia Master</string>
+    <string name="bass_boost">Bass Boost</string>
+    <string name="equalizer">Ecualizador</string>
+    <string name="reset">Resetear</string>
+    <string name="playing">Reproduciendo</string>
+    <string name="paused">Pausado</string>
+    <string name="stopped">Detenido</string>
+    <string name="notification_channel_name">Reproducción de música</string>
+    <string name="notification_channel_description">Notificaciones de reproducción en segundo plano</string>
+</resources>
