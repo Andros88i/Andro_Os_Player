@@ -21,9 +21,28 @@ android {
     }
 
     buildTypes {
+        debug {
+            debuggable true
+            signingConfig signingConfigs.debug
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-DEBUG"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+    
+    // Agregar esta sección para nombres de APK consistentes
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def flavor = variant.name
+            def versionName = variant.versionName
+            def versionCode = variant.versionCode
+            def date = new Date().format('yyyyMMdd_HHmm')
+            
+            outputFileName = "AndroOsPlayer_${flavor}_v${versionName}_${date}.apk"
         }
     }
     
@@ -80,4 +99,16 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.5.4"
     debugImplementation "androidx.compose.ui:ui-tooling:1.5.4"
     debugImplementation "androidx.compose.ui:ui-test-manifest:1.5.4"
+}
+
+// Asegurar que se creen los directorios de salida
+tasks.whenTaskAdded { task ->
+    if (task.name.matches('assemble.*') || task.name.matches('bundle.*')) {
+        task.doFirst {
+            println "Ejecutando task: ${task.name}"
+            println "Creando directorios de salida si no existen"
+            mkdir 'app/build/outputs/apk/debug'
+            mkdir 'app/build/outputs/apk/release'
+        }
+    }
 }
