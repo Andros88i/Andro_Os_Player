@@ -11,25 +11,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
     
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
     
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     
-    - name: Build with Gradle
+    - name: Build Debug APK
       run: ./gradlew assembleDebug
     
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
+    - name: Build Release APK
+      run: |
+        ./gradlew assembleRelease
+        ls -la app/build/outputs/apk/release/
+    
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
       with:
-        name: AndroOsPlayer-APK
+        name: AndroOsPlayer-Debug-APK
         path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
+    
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: AndroOsPlayer-Release-APK
+        path: app/build/outputs/apk/release/app-release.apk
+        retention-days: 7
+    
+    - name: Upload Mapping file
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Mapping-files
+        path: app/build/outputs/mapping/release/
+        retention-days: 7
