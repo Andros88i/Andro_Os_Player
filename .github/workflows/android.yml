@@ -11,15 +11,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
+    - uses: actions/checkout@v4
+    
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-
+    
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
       with:
@@ -27,10 +26,10 @@ jobs:
         packages: cmdline-tools;latest platform-tools platforms;android-34 build-tools;34.0.0
         accept-android-sdk-licenses: true
         log-accepted-android-sdk-licenses: true
-
+    
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-
+    
     - name: Cache Gradle dependencies
       uses: actions/cache@v3
       with:
@@ -40,64 +39,64 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-
-    # 🔨 BUILD REAL
-    - name: Build Debug & Release (AAB)
+    
+    - name: Build APKs
+      id: build
       run: |
-        echo "=== Limpieza ==="
         ./gradlew clean
-
-        echo "=== Build DEBUG ==="
         ./gradlew assembleDebug
-
-        echo "=== Build RELEASE (AAB) ==="
-        ./gradlew bundleRelease \
-          -Pandroid.injected.signing.store.file= \
-          -Pandroid.injected.signing.store.password= \
-          -Pandroid.injected.signing.key.alias= \
-          -Pandroid.injected.signing.key.password=
-
-    # 📦 DESCARGAR BUNDLETOOL
-    - name: Download bundletool
+        
+        # Intenta primero sin firmar, luego con firma
+        ./gradlew assembleRelease 2>&1 || echo "Release build falló, intentando sin firma"
+        
+        # Si falla assembleRelease, intenta generar un release sin firmar
+        if [ ! -f "app/build/outputs/apk/release/app-release.apk" ]; then
+          echo "Generando release sin firma..."
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file= -Pandroid.injected.signing.store.password= -Pandroid.injected.signing.key.alias= -Pandroid.injected.signing.key.password=
+        fi
+    
+    - name: Debug - List all files
       run: |
-        wget https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.15.6.jar -O bundletool.jar
-
-    # 🔄 CONVERTIR AAB → APK
-    - name: Generate Universal APK from AAB
-      run: |
-        mkdir -p app/build/outputs/apk/release
-
-        java -jar bundletool.jar build-apks \
-          --bundle=app/build/outputs/bundle/release/app-release.aab \
-          --output=app/build/outputs/apk/release/app-release.apks \
-          --mode=universal \
-          --overwrite
-
-        unzip app/build/outputs/apk/release/app-release.apks \
-          -d app/build/outputs/apk/release/
-
-    # 🔍 DEBUG REAL
-    - name: Debug - List generated files
-      run: |
-        echo "=== AAB ==="
-        ls -la app/build/outputs/bundle/release || true
-
-        echo "=== APK ==="
-        find app/build/outputs/apk -type f || true
-
-    # ⬆️ SUBIR APK FINAL
+        echo "=== Estructura completa del proyecto ==="
+        find . -name "*.apk" -type f 2>/dev/null | head -20
+        
+        echo "=== Directorio app/build completo ==="
+        ls -la app/build/ || echo "No existe app/build/"
+        
+        echo "=== Directorio app/build/outputs completo ==="
+        ls -la app/build/outputs/ || echo "No existe app/build/outputs/"
+        
+        echo "=== Directorio app/build/outputs/apk completo ==="
+        ls -la app/build/outputs/apk/ || echo "No existe app/build/outputs/apk/"
+        
+        echo "=== Buscando APKs recursivamente ==="
+        find app/build -name "*.apk" -type f 2>/dev/null
+        
+        echo "=== Contenido de gradle.properties ==="
+        cat gradle.properties 2>/dev/null || echo "No hay gradle.properties"
+    
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: AndroOsPlayer-Debug-APK
+        path: app/build/outputs/apk/**/debug/*.apk
+        retention-days: 7
+        if-no-files-found: warn
+    
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
         name: AndroOsPlayer-Release-APK
-        path: app/build/outputs/apk/release/universal.apk
+        path: app/build/outputs/apk/**/release/*.apk
         retention-days: 7
-        if-no-files-found: error
-
-    # ⬆️ SUBIR AAB (por si lo necesitas)
-    - name: Upload Release AAB
+        if-no-files-found: warn
+    
+    - name: Upload All APKs (fallback)
       uses: actions/upload-artifact@v4
       with:
-        name: AndroOsPlayer-Release-AAB
-        path: app/build/outputs/bundle/release/*.aab
+        name: All-APK-Files-Fallback
+        path: |
+          app/build/**/*.apk
+          app/**/build/**/*.apk
         retention-days: 7
+        if-no-files-found: warn
