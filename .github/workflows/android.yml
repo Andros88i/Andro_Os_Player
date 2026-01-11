@@ -21,6 +21,13 @@ jobs:
     
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      with:
+        cmdline-tools-version: '11076708'
+        packages: |
+          cmdline-tools;latest
+          platform-tools
+          platforms;android-34
+          build-tools;34.0.0
     
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -37,26 +44,52 @@ jobs:
     
     - name: Build with Gradle
       run: |
+        ./gradlew clean
         ./gradlew assembleDebug
         ./gradlew assembleRelease
+    
+    - name: List all build outputs
+      run: |
+        echo "=== Listando archivos en app/build/ ==="
+        find app/build -name "*.apk" -type f | while read file; do
+          echo "APK encontrado: $file"
+          ls -la "$file"
+        done || echo "No se encontraron APKs"
+        
+        echo "=== Contenido de app/build/outputs/apk/ ==="
+        ls -la app/build/outputs/apk/ || echo "No existe directorio"
+        
+        echo "=== Contenido de app/build/outputs/apk/debug/ ==="
+        ls -la app/build/outputs/apk/debug/ || echo "No existe directorio debug"
+        
+        echo "=== Contenido de app/build/outputs/apk/release/ ==="
+        ls -la app/build/outputs/apk/release/ || echo "No existe directorio release"
     
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
         name: AndroOsPlayer-Debug-APK
-        path: app/build/outputs/apk/debug/*.apk
+        path: |
+          app/build/outputs/apk/debug/*.apk
+          app/build/outputs/apk/debug/output-metadata.json
         retention-days: 7
+        if-no-files-found: warn
     
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
         name: AndroOsPlayer-Release-APK
-        path: app/build/outputs/apk/release/*.apk
+        path: |
+          app/build/outputs/apk/release/*.apk
+          app/build/outputs/apk/release/output-metadata.json
         retention-days: 7
+        if-no-files-found: warn
     
-    - name: List build outputs
-      run: |
-        echo "Debug APK files:"
-        ls -la app/build/outputs/apk/debug/ || echo "No debug directory"
-        echo "Release APK files:"
-        ls -la app/build/outputs/apk/release/ || echo "No release directory"
+    - name: Upload All APKs (fallback)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: All-APK-Files
+        path: app/build/**/*.apk
+        retention-days: 7
+        if-no-files-found: warn
